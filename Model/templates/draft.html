@@ -1,0 +1,343 @@
+Header
+-------------------------------------------
+| Logo | Home | About | Contact |
+
+Hero Section
+-------------------------------------------
+| [Background Image]                                    |
+| Explore Energy Capacity Simulations                   |
+| Interactive Insights into Renewable and Non-Renewable Capacity |
+| [Start Exploring]                                     |
+
+Main Content
+-------------------------------------------
+Section 1: Introduction
+-------------------------------------------
+Title: "Welcome to the Energy Capacity Simulation Platform"
+[Brief Introduction]
+
+Section 2: Renewable Capacity Simulation
+-------------------------------------------
+Title: "Renewable Energy Capacity Simulation"
+[Description]
+[Interactive Simulation]
+- Inputs: [Sliders/Dropdowns]
+- Outputs: [Dynamic Graphs/Charts]
+
+Section 3: Non-Renewable Capacity Simulation
+-------------------------------------------
+Title: "Non-Renewable Energy Capacity Simulation"
+[Description]
+[Interactive Simulation]
+- Inputs: [Sliders/Dropdowns]
+- Outputs: [Dynamic Graphs/Charts]
+
+Section 4: Comparative Analysis
+-------------------------------------------
+Title: "Comparative Analysis"
+[Description]
+[Interactive Simulation]
+- Inputs: [Select Parameters]
+- Outputs: [Dual-View Graphs/Charts]
+
+Footer
+-------------------------------------------
+| About Us | Privacy Policy | Terms of Service | Contact Information |
+| [Social Media Icons] 
+
+<div>
+    <div>
+        <h3>Renewable & Non-renewable Percentiles</h3>
+        {{ results.percentiles|safe }}
+    </div>
+    <div>
+        <h3>Renewable Capacity Simulations</h3>
+        {{ results.ren_simulations|safe }}
+    </div>
+    <div>
+        <h3>Non-Renewable Capacity Simulations</h3>
+        {{ results.non_ren_simulations|safe }}
+    </div>
+</div>
+
+<!--------------------------------------------------------------------------------------->
+
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Monte Carlo Simulation</title>
+{% endblock %}
+
+{% block body %}
+    <h1>Monte Carlo Simulation</h1>
+    <form method="POST">
+        <label for="scenario_type"> Select Scenario Type:</label>
+        <select id="scenario_type" name="scenario_type" required>
+            <option value="" selected>--Select--</option>
+            <option value="ideal">Ideal Scenario</option>
+            <option value="reality">Reality Scenario</option>
+        </select><br><br>
+
+        <div id="ideal-inputs" class="hidden">
+            <h2>Ideal Scenario</h2>
+            <label for="capacity">Annual Renewable Addition (MW):</label>
+            <input type="number" id="capacity" name="capacity" required>
+            <button type="submit">Run Simulation</button>
+        </div>
+
+        <div id="reality-inputs" class="hidden">
+            <h2>Reality Scenario</h2>
+            <label for="year">Year:</label>
+            <input type="number" id="year" name="year" required><br>
+            <label for="actual_renewable_addition">Actual Renewable Addition (MW):</label>
+            <input type="number" id="actual_renewable_addition" name="actual_renewable_addition" required><br>
+            <label for="actual_non_renewable_addition">Actual Non-Renewable Addition (MW):</label>
+            <input type="number" id="actual_non_renewable_addition" name="actual_non_renewable_addition" required><br>
+            <label for="actual_renewable_retirement">Actual Renewable Retirement (MW):</label>
+            <input type="number" id="actual_renewable_retirement" name="actual_renewable_retirement" required><br>
+            <label for="actual_non_renewable_retirement">Actual Non-Renewable Retirement (MW):</label>
+            <input type="number" id="actual_non_renewable_retirement" name="actual_non_renewable_retirement" required><br> 
+            <button type="submit">Run Simulation</button>
+            
+        </div>  
+        <!-- <button type="submit">Run Simulation</button> -->
+    </form>
+
+    {% if results %}
+    <div>
+        <div>
+            <h3>Renewable & Non-renewable Yearly Percentiles</h3>
+            {{ results.percentiles|safe }}
+        </div>
+        <div>
+            <h3>Renewable Capacity Simulations</h3>
+            {{ results.ren_simulations|safe }}
+        </div>
+        <div>
+            <h3>Non-Renewable Capacity Simulations</h3>
+            {{ results.non_ren_simulations|safe }}
+        </div>
+    </div>
+    {% endif %}   
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var solutionTypeSelect = document.getElementById("scenario_type");
+            var idealInputs = document.getElementById("ideal-inputs");
+            var realityInputs = document.getElementById("reality-inputs");
+
+            // Function to toggle visibility and required attribute
+            function toggleInputsVisibility(inputs, isVisible) {
+                inputs.classList.toggle("hidden", !isVisible);
+                var inputElements = inputs.querySelectorAll("input");
+                inputElements.forEach(function(input) {
+                    input.required = isVisible;
+                });
+            }
+
+            // Initially hide all inputs
+            toggleInputsVisibility(idealInputs, false);
+            toggleInputsVisibility(realityInputs, false);
+
+            solutionTypeSelect.addEventListener("change", function() {
+                if (solutionTypeSelect.value === "ideal") {
+                    toggleInputsVisibility(idealInputs, true);
+                    toggleInputsVisibility(realityInputs, false);
+                } else if (solutionTypeSelect.value === "reality") {
+                    toggleInputsVisibility(idealInputs, false);
+                    toggleInputsVisibility(realityInputs, true);
+                } else {
+                    toggleInputsVisibility(idealInputs, false);
+                    toggleInputsVisibility(realityInputs, false);
+                }
+            });
+        });
+    </script> 
+{% endblock %}
+
+<!--------------------------------------------------------------------------------------->
+
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Monte Carlo Simulation</title>
+{% endblock %}
+
+{% block body %}
+    <h1>Monte Carlo Simulation</h1>
+    <form method="POST">
+        <label for="scenario_type"> Select Scenario Type:</label>
+        <select id="scenario_type" name="scenario_type" required>
+            <option value="" selected>--Select--</option>
+            <option value="ideal">Ideal Scenario</option>
+            <option value="reality">Reality Scenario</option>
+        </select><br><br>
+
+        <div id="ideal-inputs" class="hidden">
+            <h2>Ideal Scenario</h2>
+            <label for="capacity">Annual Renewable Addition (MW):</label>
+            <input type="number" id="capacity" name="capacity" required>
+            <button type="submit">Run Simulation</button>
+        </div>
+
+        <div id="reality-inputs" class="hidden">
+            <h2>Reality Scenario</h2>
+            <label for="year">Year:</label>
+            <input type="number" id="year" name="year" required><br>
+            <label for="actual_renewable_addition">Actual Renewable Addition (MW):</label>
+            <input type="number" id="actual_renewable_addition" name="actual_renewable_addition" required><br>
+            <label for="actual_non_renewable_addition">Actual Non-Renewable Addition (MW):</label>
+            <input type="number" id="actual_non_renewable_addition" name="actual_non_renewable_addition" required><br>
+            <label for="actual_renewable_retirement">Actual Renewable Retirement (MW):</label>
+            <input type="number" id="actual_renewable_retirement" name="actual_renewable_retirement" required><br>
+            <label for="actual_non_renewable_retirement">Actual Non-Renewable Retirement (MW):</label>
+            <input type="number" id="actual_non_renewable_retirement" name="actual_non_renewable_retirement" required><br> 
+            <button type="submit">Run Simulation</button>
+        </div>  
+        <!-- <button type="submit">Run Simulation</button> -->
+    </form>
+
+    {% if results %}
+    <div>
+        <div>
+            <h3>Renewable & Non-renewable Yearly Percentiles</h3>
+            {{ results.percentiles|safe }}
+        </div>
+        <div>
+            <h3>Renewable Capacity Simulations</h3>
+            {{ results.ren_simulations|safe }}
+        </div>
+        <div>
+            <h3>Non-Renewable Capacity Simulations</h3>
+            {{ results.non_ren_simulations|safe }}
+        </div>
+    </div>
+    {% endif %}   
+
+    <h2>Update Data</h2>
+    <div id="actual_data">
+        {% for year, data in actual_data.items() %}
+            <div class="year-data" data-year="{{ year }}">
+                <h3>Year {{ year }}</h3>
+                <label>Actual Renewable Addition: <input type="number" id="actual_renewable_addition_{{ year }}" value="{{ data.actual_renewable_addition }}"></label><br>
+                <label>Actual Non-Renewable Addition: <input type="number" id="actual_non_renewable_addition_{{ year }}" value="{{ data.actual_non_renewable_addition }}"></label><br>
+                <label>Actual Renewable Retirement: <input type="number" id="actual_renewable_retirement_{{ year }}" value="{{ data.actual_renewable_retirement }}"></label><br>
+                <label>Actual Non-Renewable Retirement: <input type="number" id="actual_non_renewable_retirement_{{ year }}" value="{{ data.actual_non_renewable_retirement }}"></label><br>
+                <button type="button" onclick="updateData('{{ year }}')">Update</button>
+                <button type="button" onclick="deleteData('{{ year }}')">Delete</button>
+            </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var solutionTypeSelect = document.getElementById("scenario_type");
+            var idealInputs = document.getElementById("ideal-inputs");
+            var realityInputs = document.getElementById("reality-inputs");
+
+            // Function to toggle visibility and required attribute
+            function toggleInputsVisibility(inputs, isVisible) {
+                inputs.classList.toggle("hidden", !isVisible);
+                var inputElements = inputs.querySelectorAll("input");
+                inputElements.forEach(function(input) {
+                    input.required = isVisible;
+                });
+            }
+
+            // Initially hide all inputs
+            toggleInputsVisibility(idealInputs, false);
+            toggleInputsVisibility(realityInputs, false);
+
+            solutionTypeSelect.addEventListener("change", function() {
+                if (solutionTypeSelect.value === "ideal") {
+                    toggleInputsVisibility(idealInputs, true);
+                    toggleInputsVisibility(realityInputs, false);
+                } else if (solutionTypeSelect.value === "reality") {
+                    toggleInputsVisibility(idealInputs, false);
+                    toggleInputsVisibility(realityInputs, true);
+                } else {
+                    toggleInputsVisibility(idealInputs, false);
+                    toggleInputsVisibility(realityInputs, false);
+                }
+            });
+        });
+
+        function updateData(year) {
+            var renewableAdditionInput = document.getElementById("actual_renewable_addition_" + year);
+            var nonRenewableAdditionInput = document.getElementById("actual_non_renewable_addition_" + year);
+            var renewableRetirementInput = document.getElementById("actual_renewable_retirement_" + year);
+            var nonRenewableRetirementInput = document.getElementById("actual_non_renewable_retirement_" + year);
+
+            var updatedData = {
+                year: year,
+                actual_renewable_addition: renewableAdditionInput.value,
+                actual_non_renewable_addition: nonRenewableAdditionInput.value,
+                actual_renewable_retirement: renewableRetirementInput.value,
+                actual_non_renewable_retirement: nonRenewableRetirementInput.value
+            };
+
+            fetch("/update", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(updatedData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update the results
+                    updateResults(data.results);
+                    alert("Data updated successfully!");
+                } else {
+                    alert("Failed to update data!");
+                }
+            })
+            .catch(error => {
+                console.error("Error updating data:", error);
+                alert("An error occurred while updating data!");
+            });
+        }
+
+        function deleteData(year) {
+            fetch("/delete", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ year: year })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove the HTML elements for the deleted year
+                    var yearDiv = document.querySelector(".year-data[data-year='" + year + "']");
+                    if (yearDiv) {
+                        yearDiv.remove();
+                    }
+                    // Update the results
+                    updateResults(data.results);
+                    alert("Data deleted successfully!");
+                } else {
+                    alert("Failed to delete data!");
+                }
+            })
+            .catch(error => {
+                console.error("Error deleting data:", error);
+                alert("An error occurred while deleting data!");
+            });
+        }
+
+        function updateResults(results) {
+            // Update the results div with the new simulation data
+            var resultsDiv = document.getElementById("results");
+            resultsDiv.innerHTML = `
+                ${results.ren_histogram}
+                ${results.non_ren_histogram}
+                ${results.percentiles}
+                ${results.ren_simulations}
+                ${results.non_ren_simulations}
+            `;
+        }
+    </script> 
+{% endblock %}

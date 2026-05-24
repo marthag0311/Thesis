@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <style>
+        .hero {
+            position: relative;
+            height: 100vh;
+            background: url('/static/images/background.jpg');
+            background-size: cover;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            text-align: center;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<header>
+    <div class="logo"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Clean Electricity"></div>
+    <nav>
+        <ul> 
+            <li><a href="{{ url_for('index') }}">Home</a></li>
+            <li><a href="#section">Simulations</a></li>
+            <li><a href="{{ url_for('about') }}">About</a></li>
+            <li><a href="#footer">Contact</a></li>
+        </ul>
+    </nav>
+</header>
+
+<section class="hero">
+    <div class="hero-content">
+        <h1>Explore Energy Capacity Transition Simulations</h1>
+        <p>Interactive Insights into Renewable and Non-Renewable Capacity Transitions</p>
+        <a href="#section" class="button">Run Simulations</a>
+    </div>
+</section>
+
+<section class="main-content">
+    <div class="container">
+        <h2 class="section-title">Welcome to our energy capacity analysis tool</h2>
+        <p class="intro-text">This application allows you to simulate and visualize the growth of renewable energy capacity while decreasing non-renewable energy capacity over time. By inputting your planned annual renewable addition, initial values and target capacities, you can see projections of future energy capacities, along with percentile distributions to help understand the potential variability in outcomes. Use this tool to make informed decisions about energy planning and to explore different scenarios for achieving your energy goals.</p>
+    </div>
+</section>
+
+<section id="section">
+    <h3>Pre-Project Simulation</h3>
+    <form id="ideal" method="POST" action="/">
+        <input type="hidden" name="form_type" value="ideal">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="start">Start Year: <span class="required">*</span></label>
+                <input type="number" id="start" name="start" value="{{ form_data.get('start', '') }}" required>
+            </div>
+            <div class="form-group">
+                <label for="end">End Year: <span class="required">*</span></label>
+                <input type="number" id="end" name="end" value="{{ form_data.get('end', '') }}" required>
+            </div>
+            <div class="form-group">
+                <label for="renewable_addition">Planned Annual Renewable Addition (MW): <span class="required">*</span></label>
+                <input type="number" id="renewable_addition" name="renewable_addition" value="{{ form_data.get('renewable_addition', '') }}" min="15000" required>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="current_renewable">Current Renewable Capacity (MW): <span class="required">*</span></label>
+                <input type="number" id="current_renewable" name="current_renewable" value="{{ form_data.get('current_renewable', '') }}" required>
+            </div>
+            <div class="form-group">
+                <label for="current_non_renewable">Current Non-renewable Capacity (MW): <span class="required">*</span></label>
+                <input type="number" id="current_non_renewable" name="current_non_renewable" value="{{ form_data.get('current_non_renewable', '') }}" required>
+            </div>
+            <div class="form-group">
+                <label for="target_renewable">Target Renewable Capacity (MW): <span class="required">*</span></label>
+                <input type="number" id="target_renewable" name="target_renewable" value="{{ form_data.get('target_renewable', '') }}" required>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="target_non_renewable">Target Non-renewable Capacity (MW): <span class="required">*</span></label>
+                <input type="number" id="target_non_renewable" name="target_non_renewable" value="{{ form_data.get('target_non_renewable', '') }}" required>
+            </div>
+        </div>
+
+        <button type="submit">Run Simulation</button>
+    </form>
+</section>
+
+<section id="section">
+    <h3>During Project Progression Simulation</h3>
+    <form id="actual" method="POST" action="/add_actual">
+        <input type="hidden" name="form_type" value="actual">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="year">Year:</label>
+                <input type="number" id="year" name="year" required><br>
+            </div>
+            <div class="form-group">
+                <label for="actual_renewable_addition">Actual Renewable Addition (MW):</label>
+                <input type="number" id="actual_renewable_addition" name="actual_renewable_addition" required><br>
+            </div>
+            <div class="form-group">
+                <label for="actual_non_renewable_addition">Actual Non-Renewable Addition (MW):</label>
+                <input type="number" id="actual_non_renewable_addition" name="actual_non_renewable_addition" required><br>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="actual_renewable_retirement">Actual Renewable Retirement (MW):</label>
+                <input type="number" id="actual_renewable_retirement" name="actual_renewable_retirement" required><br>
+            </div>
+            <div class="form-group">
+                <label for="actual_non_renewable_retirement">Actual Non-Renewable Retirement (MW):</label>
+                <input type="number" id="actual_non_renewable_retirement" name="actual_non_renewable_retirement" required><br> 
+            </div>
+        </div>
+
+        <button type="submit">Run Simulation</button>
+    </form>
+</section>
+
+<section id="section">
+    <div class="content">
+        <h3>Actual Addition & Retirement</h1>
+        <table>
+            <tr>
+                <th>Year</th>
+                <th>Renewable Addition</th>
+                <th>Non-renewable Addition</th>
+                <th>Renewable Retirement</th>
+                <th>Non-renewable Retirement</th>
+                <th>Actions</th>
+            </tr>
+        
+            {% for year, data in actual_data.items() %}
+            <tr>
+                <td>{{ year }}</td>
+                <td>{{ data.actual_renewable_addition }}</td>
+                <td>{{ data.actual_non_renewable_addition }}</td>
+                <td>{{ data.actual_renewable_retirement }}</td>
+                <td>{{ data.actual_non_renewable_retirement }}</td>
+                <td>
+                    <a href="{{ url_for('delete_actual', year=year) }}">Delete</a>
+                    <br>
+                    <a href="{{ url_for('update_actual', year=year) }}">Update</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</section> 
+
+<section id="results-section">
+    {% if results %}
+    <h2>Model Results</h2>
+    <p>The following are insights into effective 
+        pathways for increasing renewable energy 
+        deployment while phasing out non-renewable 
+        sources to meet their respective targets 
+        over a specified period
+    </p>
+    <br>
+    <h4>Energy Capacity Simulations</h4>
+    <p>Energy Capacity Simulations, which are cumulative
+        results or pathways, are visualized to understand
+        the distribution and the outcomes effectively. The 
+        plots for renewable and non-renewable capacities 
+        use different colours to differentiate between
+        the results that meet the target, which are in green
+        and those that do not meet the target, which are in 
+        orange. This highlights the pathways that achieve
+        the desired target, allowing for an immediate 
+        visual assessment of success rates.
+    </p>
+    <div class="form-row">
+        <div class="form-group">
+            {{ results.ren_simulations|safe }}
+        </div>   
+        <div class="form-group">
+            {{ results.ren_histogram|safe }}
+        </div>      
+    </div>
+
+    <h4>Final Energy Capacities</h4>
+    <p>The histograms show the frequencies of the final
+        capacities. Visualizing the spread and central 
+        tendency of final capacities, allows stakeholders 
+        to better assess the risk of not meeting the 
+        capacity target. This understanding is 
+        essential for planning and making informed 
+        decisions about energy investments, and 
+        resource allocation.  
+    </p>
+    <div class="form-row">
+        <div class="form-group">
+            {{ results.non_ren_simulations|safe }}
+        </div>  
+        <div class="form-group">
+            {{ results.non_ren_histogram|safe }}
+        </div>      
+    </div>
+
+    <h4>Energy Capacity Percentiles</h4>
+    <p></p>
+    <div class="form-row">
+        <div class="form-group">
+            {{ results.ren_percentiles|safe }}
+        </div>          
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            {{ results.non_ren_percentiles|safe }}
+        </div>          
+    </div>
+    {% endif %}
+</section>
+
+<footer id="footer">
+    <div class="logo"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Clean Electricity"></div>
+    <div class="footer-section">
+        <h4>About</h4>
+        <ul>
+            <li><a href="#">About Us</a></li>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+        </ul>
+    </div>
+    <div class="footer-section">
+        <h4>Related Sites</h4>
+        <ul>
+            <li><a href="#">Petroleum</a></li>
+            <li><a href="#">EIA</a></li>
+            <li><a href="#">Nuclear</a></li>
+        </ul>
+    </div>
+    <div class="footer-section">
+        <h4>Contact</h4>
+        <ul class="contact-info">
+            <li><i class="fas fa-phone"></i>015369100</li>
+            <li><i class="fas fa-envelope"></i>international.support@thomasmore.be</li>
+            <li><i class="fas fa-map-marker-alt"></i>Thomas More Mechelen - Campus De Vest<br>Zandpoortvest 60<br>2800, Mechelen</li>
+        </ul>
+    </div>
+</footer>
+{% endblock %}

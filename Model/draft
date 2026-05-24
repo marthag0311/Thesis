@@ -1,0 +1,1597 @@
+import os #print(os.getcwd())
+import plotly
+import random
+#import mplcursors
+#%matplotlib inline
+import numpy as np
+import pandas as pd
+import plotly.io as pio
+import plotly.express as px
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+from scipy.spatial import cKDTree
+import plotly.graph_objects as go
+from prophet.plot import plot, plot_components
+
+pio.renderers.default='browser' # notebook in jupyter notebook
+
+def get_random_ren_additions(years: int, start=5000, end=70000):    
+    return np.random.randint(start, end+1, years).tolist()
+
+def get_random_non_ren_additions(years: int, start=2000, end=10000):    
+    return np.random.randint(start, end+1, years).tolist()
+    
+def get_random_ren_retirements(years: int, start=0, end=100):
+    return np.random.randint(start, end+1, years).tolist()
+
+def get_random_non_ren_retirements(years: int, start=5000, end=70000):    
+    return np.random.randint(start, end+1, years).tolist()
+
+##################### IDEAL SOLUTION ######################
+
+def get_random_ren_additions(mean: int, std_dev: int, years: int, min_value: int, max_value: int):
+    return np.random.normal(loc=mean, scale=std_dev, size=years)
+
+def get_random_ren_additions(years: int, mean: int, std_dev=20000, min_value=0, max_value=70000):
+    additions = np.random.normal(loc=mean, scale=std_dev, size=years)
+    if max_value is not None:
+        while np.any(additions > max_value) or np.any(additions < min_value):
+            additions = np.where((additions > max_value) | (additions < min_value), 
+                                 np.random.normal(loc=mean, scale=std_dev, size=years), 
+                                 additions)
+    return additions
+
+def get_random_ren_additions(years: int):
+    """
+    Generates a list of random capacity additions for the length of years required.
+    """
+    random_additions = []
+    
+    min = 60000
+    max = 70000
+    mean = (min + max) / 2
+    std_dev = (max - min) / 2
+    
+    random_additions = np.random.normal(mean, std_dev, years)
+    
+    return random_additions
+
+#######################################################
+
+def get_random_non_ren_additions(years: int):
+    choices = np.random.choice(
+            ['high', 'medium', 'low'],
+            size = years,
+            p = [0.05, 0.20, 0.75]
+    )
+    high_additions = np.random.randint(11000, 15000, size=years)
+    medium_additions = np.random.randint(6000, 10000, size=years)
+    low_additions = np.random.randint(0, 5000, size=years)    
+    return np.select(
+        [choices == 'high', choices == 'medium', choices == 'low'],
+        [high_additions, medium_additions, low_additions]
+    )
+
+def get_random_non_ren_additions(years: int):
+    random_additions = []
+    
+    for year in range(years):
+        addition = random.choices(
+            population = ['high', 'medium', 'low'],
+            weights = [5, 20, 75],
+            k = 1
+        )[0]
+
+        if addition == 'high':
+            addition_value = random.randint(11000, 15000) 
+        elif addition == 'medium':
+            addition_value = random.randint(6000, 10000)
+        else:
+            addition_value = random.randint(0, 5000)  
+
+        random_additions.append(addition_value)
+    
+    return random_additions
+
+########################################################
+        
+def get_random_ren_retirements(years: int):
+    choices = np.random.choice(
+        ['high', 'medium', 'low'],
+        size=years,
+        p=[0.05, 0.20, 0.75]
+    )
+    high_retirements = np.random.randint(200, 300, size=years)
+    medium_retirements = np.random.randint(100, 199, size=years)
+    low_retirements = np.random.randint(0, 99, size=years)
+    return np.select(
+        [choices == 'high', choices == 'medium', choices == 'low'],
+        [high_retirements, medium_retirements, low_retirements]
+    )
+
+def get_random_ren_retirements(years: int):
+    random_retirements = []
+    
+    for year in range(years):
+        retirement = random.choices(
+            population = ['high', 'medium', 'low'],
+            weights = [5, 20, 75],
+            k = 1
+        )[0]
+
+        if retirement == 'high':
+            retirement_value = random.randint(200, 300) 
+        elif retirement == 'medium':
+            retirement_value = random.randint(100, 199)
+        else:
+            retirement_value = random.randint(0, 99)  
+
+        random_retirements.append(retirement_value)
+    
+    return random_retirements
+
+#########################################################
+
+def get_random_non_ren_retirements(mean: int, std_dev: int, years: int, min_value: int, max_value: int):
+    return np.random.normal(loc=mean, scale=std_dev, size=years)
+ 
+def get_random_non_ren_retirements(years: int):
+    choices = np.random.choice(
+            ['high', 'medium', 'low'],
+            size = years,
+            p = [0.05, 0.20, 0.75]
+    )
+    high_additions = np.random.randint(11000, 15000, size=years)
+    medium_additions = np.random.randint(6000, 10000, size=years)
+    low_additions = np.random.randint(0, 5000, size=years)    
+    return np.select(
+        [choices == 'high', choices == 'medium', choices == 'low'],
+        [high_additions, medium_additions, low_additions]
+    )
+
+def get_random_non_ren_retirements(years: int):
+    random_retirements = []
+    
+    for year in range(years):
+        retirement = random.choices(
+            population = ['high', 'medium', 'low'],
+            weights = [5, 25, 70],
+            k = 1
+        )[0]
+
+        if retirement == 'high':
+            retirement_value = random.randint(11000, 15000) 
+        elif retirement == 'medium':
+            retirement_value = random.randint(6000, 10000)
+        else:
+            retirement_value = random.randint(0, 5000)  
+
+        random_retirements.append(retirement_value)
+           
+    return random_retirements
+
+#########################################################
+
+def get_confidence_levels(final_capacities):    
+    upper_confidence = round(np.quantile(final_capacities, 0.975), 2)
+    lower_confidence = round(np.quantile(final_capacities, 0.025), 2)
+    return lower_confidence, upper_confidence
+
+#########################################################
+
+def get_yearly_percentiles(cumulative, inputs) -> pd.DataFrame:
+    """
+    Finds the percentiles for each year.
+    """
+    results_rotated = list(zip(*cumulative[::-1]))
+
+    year = []
+    age = []
+    ninetieth_percentile = []
+    seventy_fifth_percentile = []
+    median = []
+    twenty_fifth_percentile = []
+    tenth_percentile = []
+    
+    for i, year_results in enumerate(results_rotated):
+        new_age = (inputs['start_age'] + 1) + i
+        ninetieth_percentile_value = np.percentile(year_results, 90)
+        seventy_fifth_percentile_value = np.percentile(year_results, 75)
+        median_value = np.median(year_results)
+        twenty_fifth_percentile_value = np.percentile(year_results, 25)
+        tenth_percentile_value = np.percentile(year_results, 10)
+        
+        year.append(i + 1)
+        age.append(new_age)
+        ninetieth_percentile.append(ninetieth_percentile_value)
+        seventy_fifth_percentile.append(seventy_fifth_percentile_value)
+        median.append(median_value)
+        twenty_fifth_percentile.append(twenty_fifth_percentile_value)
+        tenth_percentile.append(tenth_percentile_value)
+
+    return pd.DataFrame(
+        list(
+            zip(year,
+                age,
+                ninetieth_percentile, 
+                seventy_fifth_percentile,
+                median, 
+                twenty_fifth_percentile,
+                tenth_percentile)
+        ),
+        columns=[
+            'year',
+            'age',
+            '90th_percentile',
+            '75th_percentile',
+            'median', 
+            '25th_percentile',
+            '10th_percentile']
+    )
+
+#################### PLOT FUNCTIONS #######################
+
+def plot_histogram_with_confidence(data, lower_conf, upper_conf):
+    fig = px.histogram(data, nbins=50, title="Histogram of Renewable Capacities with Confidence Intervals")
+
+    fig.add_vline(x=lower_conf, line_width=2, line_dash='dash', line_color='red',
+                  annotation_text=f"Lower Conf ({lower_conf})", annotation_position="bottom left")
+    fig.add_vline(x=upper_conf, line_width=2, line_dash='dash', line_color='green',
+                  annotation_text=f"Upper Conf ({upper_conf})", annotation_position="bottom right")
+
+    fig.update_layout(
+        xaxis_title="Renewable Capacity",
+        yaxis_title="Frequency",
+        bargap=0.2
+    )
+    
+    fig.show()
+
+#########################################################
+
+def plot_histogram(final_capacities: list, 
+                   upper_confidence:float, 
+                   lower_confidence: float):
+    """
+    Plots the frequencies of the final capacities.
+    """
+    fig = px.histogram(final_capacities, 
+                       title=f"The final capacity after {len(final_capacities)} simulations.")
+    
+    fig.add_vline(x=lower_confidence, 
+                  line_width=3, 
+                  line_dash="dash", 
+                  line_color="green")
+    
+    fig.add_vline(x=upper_confidence, 
+                  line_width=3, 
+                  line_dash="dash", 
+                  line_color="green")
+    
+    fig.add_vline(x=np.median(final_capacities), 
+                  line_width=3, 
+                  line_dash="dash", 
+                  line_color="black",
+                  annotation_text="median",
+                  annotation_font_size=15)
+    
+    fig.add_vrect(x0=lower_confidence, 
+                  x1=upper_confidence, 
+                  line_width=0, 
+                  fillcolor="green",
+                  opacity=0.2,
+                  annotation_text="95% confidence interval",
+                  annotation_font_size=15)
+    
+    fig.update_layout(
+        xaxis_title="Capacity (MW)",
+        yaxis_title="Count",
+        showlegend=False,
+        font=dict(
+            family="Arial",
+            size=14
+        ),
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+    )
+    fig.write_html('outputs/mc-histogram.html', auto_open=True)
+
+#########################################################
+
+def plot_renewable_yearly_percentiles(inputs, df):
+    """
+    Plots the year by year percentile graph.
+    """
+    exact_np = df[df['90th_percentile'] > inputs['target_ren_capacity']].iloc[0]
+    exact_sfp = df[df['75th_percentile'] > inputs['target_ren_capacity']].iloc[0]
+    exact_median = df[df['median'] > inputs['target_ren_capacity']].iloc[0]
+    exact_tfp = df[df['25th_percentile'] > inputs['target_ren_capacity']].iloc[0]
+    exact_tp = df[df['10th_percentile'] > inputs['target_ren_capacity']].iloc[0]
+    
+    fig = go.Figure()
+    
+    fig.add_traces(go.Scatter(x=df['year'], 
+                              y=df['10th_percentile'],
+                              line = dict(color='#FFA502'),
+                              mode='lines',
+                              name='10th %tile',
+                              fill='none', 
+                              fillcolor = '#F7CA77'))
+    
+    fig.add_traces(go.Scatter(x=df['year'], 
+                              y=df['25th_percentile'],
+                              line = dict(color='#7BE56E'),
+                              mode='lines',
+                              name='25th %tile',
+                              fill='tonexty', 
+                              fillcolor = '#F7CA77'))
+
+    
+    fig.add_traces(go.Scatter(x=df['year'], 
+                              y=df['median'],
+                              line=dict(color='black'),
+                              line_width=3,
+                              mode='lines',
+                              name="median", 
+                              fill='tonexty',
+                              fillcolor='#00FF66'))
+    
+    fig.add_traces(go.Scatter(x=df['year'], 
+                              y=df['75th_percentile'],
+                              line = dict(color='#7BE56E'),
+                              mode='lines',
+                              name="75th %tile",
+                              fill='tonexty', 
+                              fillcolor = '#00FF66'))
+    
+    fig.add_traces(go.Scatter(x=df['year'], 
+                              y=df['90th_percentile'],
+                              line = dict(color='#FFA502'),
+                              mode='lines',
+                              name="90th %tile",
+                              fill='tonexty', 
+                              fillcolor = '#F7CA77'))
+    
+    fig.update_layout(hovermode="x")
+    
+    fig.update_xaxes(tickangle=0, 
+                     dtick=1,
+                     showticklabels=True, 
+                     gridcolor='lightgray',
+                     type='category')
+    
+    fig.update_yaxes(gridcolor='lightgray',
+                     rangemode="tozero")
+    
+    fig.add_hline(y=inputs['target_ren_capacity'], 
+                  line_width=2, 
+                  line_dash='dash', 
+                  line_color='red',
+                  annotation_text='Renewable capacity target',
+                  annotation_font=dict(
+                    family="Arial",
+                    size=15,
+                    color="red"
+                  ),
+                  annotation_font_size=15,
+                  annotation_position='bottom left',
+                  fillcolor='red')
+    
+    fig.add_shape(type="line",
+                  x0=int(exact_median['count'] - 1), 
+                  y0=0, 
+                  x1=int(exact_median['count'] - 1), 
+                  y1=inputs['target_ren_capacity'],
+                  line_width=2,
+                  line_color='gray',
+                  line_dash='dash')
+    
+    fig.add_shape(type="line",
+                  x0=int(exact_tp['count'] - 1), 
+                  y0=0, 
+                  x1=int(exact_tp['count'] - 1), 
+                  y1=inputs['target_ren_capacity'],
+                  line_width=2,
+                  line_color='orange',
+                  line_dash='dash')
+    
+    fig.add_shape(type="line",
+                  x0=int(exact_np['count'] - 1), 
+                  y0=0, 
+                  x1=int(exact_np['count'] - 1), 
+                  y1=inputs['target_ren_capacity'],
+                  line_width=2,
+                  line_color='orange',
+                  line_dash='dash')
+    
+    fig.add_shape(type="line",
+                  x0=int(exact_tfp['count'] - 1), 
+                  y0=0, 
+                  x1=int(exact_tfp['count'] - 1), 
+                  y1=inputs['target_ren_capacity'],
+                  line_width=2,
+                  line_color='green',
+                  line_dash='dash')
+    
+    fig.add_shape(type="line",
+                  x0=int(exact_sfp['count'] - 1), 
+                  y0=0, 
+                  x1=int(exact_sfp['count'] - 1), 
+                  y1=inputs['target_ren_capacity'],
+                  line_width=2,
+                  line_color='green',
+                  line_dash='dash')
+      
+    fig.add_annotation(x=int(exact_median['count'] - 1), 
+                       y=inputs['target_ren_capacity'] * 1.45,
+                       text=f"<b>{int(exact_median['count'])} years</b>",
+                       font=dict(
+                            color="black",
+                            size=21
+                       ),
+                       showarrow=False,
+                       yshift=10)
+    
+    fig.add_annotation(x=int(exact_median['count'] - 1), 
+                       y=inputs['target_ren_capacity'] * 1.3,
+                       text=f"<b>(Year {int(exact_median['year'])})</b>",
+                       font=dict(
+                            color="black",
+                            size=21
+                       ),
+                       showarrow=False,
+                       yshift=10)
+    
+    fig.add_annotation(x=inputs['end_age'] - inputs['start_age'] - 1.2, 
+                       y=df['10th_percentile'].max() - 8000,
+                       text="<b>10%</b>",
+                       font=dict(
+                            color="black",
+                            size=12
+                       ),
+                       showarrow=False,
+                       yshift=10)
+    
+    fig.add_annotation(x=inputs['end_age'] - inputs['start_age'] - 1.2, 
+                       y=df['25th_percentile'].max() - 8000,
+                       text="<b>25%</b>",
+                       font=dict(
+                            color="black",
+                            size=12
+                       ),
+                       showarrow=False,
+                       yshift=10)
+        
+    fig.add_annotation(x=inputs['end_age'] - inputs['start_age'] - 1.25, 
+                       y=df['median'].max() - 5000,
+                       text="<b>median</b>",
+                       font=dict(
+                            color="black",
+                            size=12
+                       ),
+                       showarrow=False,
+                       yshift=10)
+    
+    fig.add_annotation(x=inputs['end_age'] - inputs['start_age'] - 1.2, 
+                       y=df['75th_percentile'].max() - 4000,
+                       text="<b>75%</b>",
+                       font=dict(
+                            color="black",
+                            size=12
+                       ),
+                       showarrow=False,
+                       yshift=10)
+    
+    fig.add_annotation(x=inputs['end_age'] - inputs['start_age'] - 1.2, 
+                       y=df['90th_percentile'].max() - 5000,
+                       text="<b>90%</b>",
+                       font=dict(
+                            color="black",
+                            size=12
+                       ),
+                       showarrow=False,
+                       yshift=10)
+    
+    fig.add_annotation(x=.99,
+                       xref='paper',
+                       xanchor='right',
+                       y=0,
+                       yanchor='bottom',
+                       text="<b>shedloadofcode.com</b>",
+                       font=dict(
+                            color="gray",
+                            size=14
+                       ),
+                       showarrow=False)
+    
+    fig.add_annotation(x=0.01,
+                       xref='paper',
+                       yref='paper',
+                       xanchor='left',
+                       y=0.99,
+                       yanchor='top',
+                       text=f"In <b>{inputs['n_simulations']}</b> simulations " +
+                            f"<b>{int(exact_median['year'])}</b> " +
+                            f"is the median year ({int(exact_median['count'])} years)<br>",
+                       font=dict(
+                            color="black",
+                            size=15
+                       ),
+                       showarrow=False)
+    
+    #fig.add_annotation(x=0.01,
+     #                  xref='paper',
+      #                 yref='paper',
+       #                xanchor='left',
+        #               y=0.96,
+         #              yanchor='top',
+          #             text="<span style=\"color:orange\">10th to 90th %ile: " +
+           #                 f"<b>{int(exact_np['count'])} to {int(exact_tp['count'])} " + 
+            #                 "years</b> to target</span>",  
+             #          font=dict(
+              #              color="black",
+               #             size=15
+                #       ),
+                 #      showarrow=False)
+    
+    #fig.add_annotation(x=0.01,
+     #                  xref='paper',
+      #                 yref='paper',
+       #                xanchor='left',
+        #               y=0.93,
+         #              yanchor='top',
+          #             text="<span style=\"color:green\">25th to 75th %ile: " +
+           #                 f"<b>{int(exact_sfp['count'])} to {int(exact_tfp['count'])} " + 
+            #                 "years</b> to target</span>",
+             #          font=dict(
+              ##              color="black",
+                #            size=15
+                 #      ),
+                  #     showarrow=False)
+     
+    
+    fig.update_layout(
+        title=f"Percentiles by year after {inputs['n_simulations']} simulations.",
+        xaxis_title="Year",
+        yaxis_title="Capacity (MW)",
+        legend_title="Legend Title",
+        showlegend=False,
+        font=dict(
+            family="Arial",
+            size=14
+        ),
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+    )
+    
+    fig.show()
+
+#########################################################
+
+def plot_non_renewable_yearly_percentiles(inputs, df):
+    """
+    Plots the year by year percentile graph.
+    """
+    exact_np = df[df['90th_percentile'] > inputs['target_non_ren_capacity']].iloc[0]
+    exact_sfp = df[df['75th_percentile'] > inputs['target_non_ren_capacity']].iloc[0]
+    exact_median = df[df['median'] <= inputs['target_non_ren_capacity']].iloc[0]
+    exact_tfp = df[df['25th_percentile'] > inputs['target_non_ren_capacity']].iloc[0]
+    exact_tp = df[df['10th_percentile'] > inputs['target_non_ren_capacity']].iloc[0]
+    
+    fig = go.Figure()
+    
+    fig.add_traces(go.Scatter(x=df['year'], 
+                              y=df['10th_percentile'],
+                              line = dict(color='#FFA502'),
+                              mode='lines',
+                              name='10th %tile',
+                              fill='none', 
+                              fillcolor = '#F7CA77'))
+    
+    fig.add_traces(go.Scatter(x=df['year'], 
+                              y=df['25th_percentile'],
+                              line = dict(color='#7BE56E'),
+                              mode='lines',
+                              name='25th %tile',
+                              fill='tonexty', 
+                              fillcolor = '#F7CA77'))
+
+    
+    fig.add_traces(go.Scatter(x=df['year'], 
+                              y=df['median'],
+                              line=dict(color='black'),
+                              line_width=3,
+                              mode='lines',
+                              name="median", 
+                              fill='tonexty',
+                              fillcolor='#00FF66'))
+    
+    fig.add_traces(go.Scatter(x=df['year'], 
+                              y=df['75th_percentile'],
+                              line = dict(color='#7BE56E'),
+                              mode='lines',
+                              name="75th %tile",
+                              fill='tonexty', 
+                              fillcolor = '#00FF66'))
+    
+    fig.add_traces(go.Scatter(x=df['year'], 
+                              y=df['90th_percentile'],
+                              line = dict(color='#FFA502'),
+                              mode='lines',
+                              name="90th %tile",
+                              fill='tonexty', 
+                              fillcolor = '#F7CA77'))
+    
+    fig.update_layout(hovermode="x")
+    
+    fig.update_xaxes(tickangle=0, 
+                     dtick=1,
+                     showticklabels=True, 
+                     gridcolor='lightgray',
+                     type='category')
+    
+    fig.update_yaxes(gridcolor='lightgray',
+                     rangemode="tozero")
+    
+    fig.add_hline(y=inputs['target_non_ren_capacity'], 
+                  line_width=2, 
+                  line_dash='dash', 
+                  line_color='red',
+                  annotation_text='Non-renewable capacity target',
+                  annotation_font=dict(
+                    family="Arial",
+                    size=15,
+                    color="red"
+                  ),
+                  annotation_font_size=15,
+                  annotation_position='bottom left',
+                  fillcolor='red')
+    
+    fig.add_shape(type="line",
+                  x0=int(exact_median['count'] - 1), 
+                  y0=0, 
+                  x1=int(exact_median['count'] - 1), 
+                  y1=inputs['target_non_ren_capacity'],
+                  line_width=2,
+                  line_color='gray',
+                  line_dash='dash')
+    
+    fig.add_shape(type="line",
+                  x0=int(exact_tp['count'] - 1), 
+                  y0=0, 
+                  x1=int(exact_tp['count'] - 1), 
+                  y1=inputs['target_non_ren_capacity'],
+                  line_width=2,
+                  line_color='orange',
+                  line_dash='dash')
+    
+    fig.add_shape(type="line",
+                  x0=int(exact_np['count'] - 1), 
+                  y0=0, 
+                  x1=int(exact_np['count'] - 1), 
+                  y1=inputs['target_non_ren_capacity'],
+                  line_width=2,
+                  line_color='orange',
+                  line_dash='dash')
+    
+    fig.add_shape(type="line",
+                  x0=int(exact_tfp['count'] - 1), 
+                  y0=0, 
+                  x1=int(exact_tfp['count'] - 1), 
+                  y1=inputs['target_non_ren_capacity'],
+                  line_width=2,
+                  line_color='green',
+                  line_dash='dash')
+    
+    fig.add_shape(type="line",
+                  x0=int(exact_sfp['count'] - 1), 
+                  y0=0, 
+                  x1=int(exact_sfp['count'] - 1), 
+                  y1=inputs['target_non_ren_capacity'],
+                  line_width=2,
+                  line_color='green',
+                  line_dash='dash')
+      
+    #fig.add_annotation(x=int(exact_median['count'] - 1), 
+     #                  y=inputs['target_non_ren_capacity'] * 1.45,
+      #                 text=f"<b>{int(exact_median['count'])} years</b>",
+       #             font=dict(
+        #                    color="black",
+         #                   size=21
+          #             ),
+           #            showarrow=False,
+            #           yshift=10)
+    
+    #fig.add_annotation(x=int(exact_median['count'] - 1), 
+     #                  y=inputs['target_non_ren_capacity'] * 1.3,
+      #                 text=f"<b>(Year {int(exact_median['year'])})</b>",
+       #                font=dict(
+        #                    color="black",
+         #                   size=21
+          #             ),
+           #            showarrow=False,
+            #           yshift=10)
+    
+    fig.add_annotation(x=inputs['end_age'] - inputs['start_age'] - 1.2, 
+                       y=df['10th_percentile'].max() - 8000,
+                       text="<b>10%</b>",
+                       font=dict(
+                            color="black",
+                            size=12
+                       ),
+                       showarrow=False,
+                       yshift=10)
+    
+    fig.add_annotation(x=inputs['end_age'] - inputs['start_age'] - 1.2, 
+                       y=df['25th_percentile'].max() - 8000,
+                       text="<b>25%</b>",
+                       font=dict(
+                            color="black",
+                            size=12
+                       ),
+                       showarrow=False,
+                       yshift=10)
+        
+    fig.add_annotation(x=inputs['end_age'] - inputs['start_age'] - 1.25, 
+                       y=df['median'].max() - 5000,
+                       text="<b>median</b>",
+                       font=dict(
+                            color="black",
+                            size=12
+                       ),
+                       showarrow=False,
+                       yshift=10)
+    
+    fig.add_annotation(x=inputs['end_age'] - inputs['start_age'] - 1.2, 
+                       y=df['75th_percentile'].max() - 4000,
+                       text="<b>75%</b>",
+                       font=dict(
+                            color="black",
+                            size=12
+                       ),
+                       showarrow=False,
+                       yshift=10)
+    
+    fig.add_annotation(x=inputs['end_age'] - inputs['start_age'] - 1.2, 
+                       y=df['90th_percentile'].max() - 5000,
+                       text="<b>90%</b>",
+                       font=dict(
+                            color="black",
+                            size=12
+                       ),
+                       showarrow=False,
+                       yshift=10)
+    
+    fig.add_annotation(x=.99,
+                       xref='paper',
+                       xanchor='right',
+                       y=0,
+                       yanchor='bottom',
+                       text="<b>shedloadofcode.com</b>",
+                       font=dict(
+                            color="gray",
+                            size=14
+                       ),
+                       showarrow=False)
+    
+    fig.add_annotation(x=0.01,
+                       xref='paper',
+                       yref='paper',
+                       xanchor='left',
+                       y=0.99,
+                       yanchor='top',
+                       text=f"In <b>{inputs['n_simulations']}</b> simulations " +
+                            f"<b>{int(exact_median['year'])}</b> " +
+                            f"is the median year ({int(exact_median['count'])} years)<br>",
+                       font=dict(
+                            color="black",
+                            size=15
+                       ),
+                       showarrow=False)
+    
+    #fig.add_annotation(x=0.01,
+     #                  xref='paper',
+      #                 yref='paper',
+       #                xanchor='left',
+        #               y=0.96,
+         #              yanchor='top',
+          #             text="<span style=\"color:orange\">10th to 90th %ile: " +
+           #                 f"<b>{int(exact_np['count'])} to {int(exact_tp['count'])} " + 
+            #                 "years</b> to target</span>",  
+             #          font=dict(
+              #              color="black",
+               #             size=15
+                #       ),
+                 #      showarrow=False)
+    
+    #fig.add_annotation(x=0.01,
+     #                  xref='paper',
+      #                 yref='paper',
+       #                xanchor='left',
+        #               y=0.93,
+         #              yanchor='top',
+          #             text="<span style=\"color:green\">25th to 75th %ile: " +
+           #                 f"<b>{int(exact_sfp['count'])} to {int(exact_tfp['count'])} " + 
+            #                 "years</b> to target</span>",
+             #          font=dict(
+              #              color="black",
+               #             size=15
+                #       ),
+                 #      showarrow=False)
+     
+    
+    fig.update_layout(
+        title=f"Percentiles by year after {inputs['n_simulations']} simulations.",
+        xaxis_title="Year",
+        yaxis_title="Capacity (MW)",
+        legend_title="Legend Title",
+        showlegend=False,
+        font=dict(
+            family="Arial",
+            size=14
+        ),
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+    )
+    
+    fig.show()
+
+#########################################################
+
+def plot_yearly_percentiles(yearly_percentiles, title='Yearly Percentiles', ylabel='Capacity', 
+                            target=None, target_label=None):
+    years = list(yearly_percentiles.keys())
+    if not years:
+        print("No data available to plot.")
+        return
+    
+    # Determine which percentiles are available
+    example_year = years[0]
+    available_percentiles = yearly_percentiles[example_year].keys()
+    
+    # Plot available percentiles
+    plt.figure(figsize=(10, 6))
+    
+    for p in available_percentiles:
+        plt.plot(years, [yearly_percentiles[year][p] for year in years], label=f'{p}th Percentile')
+    
+    # Shaded areas for specific ranges, if they exist
+    if 5 in available_percentiles and 95 in available_percentiles:
+        plt.fill_between(years, 
+                         [yearly_percentiles[year][5] for year in years], 
+                         [yearly_percentiles[year][95] for year in years], 
+                         color='gray', alpha=0.2, label='5th-95th Percentile Range')
+    
+    if 25 in available_percentiles and 75 in available_percentiles:
+        plt.fill_between(years, 
+                         [yearly_percentiles[year][25] for year in years], 
+                         [yearly_percentiles[year][75] for year in years], 
+                         color='blue', alpha=0.2, label='25th-75th Percentile Range')
+    
+    # Plot target line
+    if target is not None:
+        plt.axhline(y=target, color='red', linestyle='--', label=target_label)
+        # Annotate the year when target is reached
+        offset = 0
+        for p in available_percentiles:
+            target_year = next((year for year in years if yearly_percentiles[year][p] >= target), None)
+            #if target_year:
+             #   plt.annotate(f'{p}th Percentile reaches target', 
+              #               xy=(target_year, target), 
+               #              xytext=(target_year + 1, target + (target * 0.05) + offset),
+                #             arrowprops=dict(facecolor='black', arrowstyle='->'))
+                #offset += target * 0.05  # Increase offset for the next annotation
+
+    plt.title(title)
+    plt.xlabel('Year')
+    plt.ylabel(ylabel)
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+###########################################################
+
+def plot_yearly_percentiles(yearly_percentiles, title='Yearly Percentiles', ylabel='Capacity (MW)', 
+                                   target=None, target_label=None):
+
+    years = list(yearly_percentiles.keys())
+    if not years:
+        print("No data available to plot.")
+        return
+    
+    # Determine which percentiles are available
+    example_year = years[0]
+    available_percentiles = yearly_percentiles[example_year].keys()
+    
+    traces = []
+    
+    # Plot available percentiles
+    for p in available_percentiles:
+        traces.append(go.Scatter(
+            x=years,
+            y=[yearly_percentiles[year][p] for year in years],
+            mode='lines',
+            name=f'{p}th Percentile'
+        ))
+    
+    # Shaded areas for specific ranges, if they exist
+    if 5 in available_percentiles and 95 in available_percentiles:
+        traces.append(go.Scatter(
+            x=years,
+            y=[yearly_percentiles[year][5] for year in years],
+            fill=None,
+            mode='lines',
+            line=dict(color='gray', width=0.5),
+            showlegend=False
+        ))
+        traces.append(go.Scatter(
+            x=years,
+            y=[yearly_percentiles[year][95] for year in years],
+            fill='tonexty',
+            mode='lines',
+            line=dict(color='gray', width=0.5),
+            fillcolor='rgba(128, 128, 128, 0.2)',
+            name='5th-95th Percentile Range'
+        ))
+
+    if 25 in available_percentiles and 75 in available_percentiles:
+        traces.append(go.Scatter(
+            x=years,
+            y=[yearly_percentiles[year][25] for year in years],
+            fill=None,
+            mode='lines',
+            line=dict(color='blue', width=0.5),
+            showlegend=False
+        ))
+        traces.append(go.Scatter(
+            x=years,
+            y=[yearly_percentiles[year][75] for year in years],
+            fill='tonexty',
+            mode='lines',
+            line=dict(color='blue', width=0.5),
+            fillcolor='rgba(0, 0, 255, 0.2)',
+            name='25th-75th Percentile Range'
+        ))
+
+    # Plot target line
+    if target is not None:
+        traces.append(go.Scatter(
+            x=[years[0], years[-1]],
+            y=[target, target],
+            mode='lines',
+            line=dict(color='red', dash='dash'),
+            name=target_label
+        ))
+        
+        # Annotate the year when target is reached
+        offset = 0
+        for p in available_percentiles:
+            target_year = next((year for year in years if yearly_percentiles[year][p] >= target), None)
+            if target_year:
+                traces.append(go.Scatter(
+                    x=[target_year],
+                    y=[target],
+                    mode='markers+text',
+                    text=[f'{p}th Percentile reaches target'],
+                    textposition='top right',
+                    marker=dict(color='red'),
+                    showlegend=False
+                ))
+                offset += target * 0.05  # Increase offset for the next annotation
+
+    layout = go.Layout(
+        title=title,
+        xaxis=dict(title='Year'),
+        yaxis=dict(title=ylabel),
+        legend=dict(x=0.01, y=0.99)
+    )
+    
+    fig = go.Figure(data=traces, layout=layout)
+    
+    return fig
+    
+def plot_yearly_percentiles(ren_yearly_percentiles, non_ren_yearly_percentiles, 
+                                            title='Yearly Percentiles', ylabel='Capacity (MW)', 
+                                            ren_target=None, ren_target_label=None,
+                                            non_ren_target=None, non_ren_target_label=None):
+   
+    years = list(ren_yearly_percentiles.keys())
+    if not years:
+        print("No data available to plot.")
+        return
+    
+    # Determine which percentiles are available
+    example_year = years[0]
+    available_percentiles = ren_yearly_percentiles[example_year].keys()
+    
+    traces = []
+    
+    # Plot renewable percentiles
+    for p in available_percentiles:
+        traces.append(go.Scatter(
+            x=years,
+            y=[ren_yearly_percentiles[year][p] for year in years],
+            mode='lines',
+            name=f'Renewable {p}th Percentile'
+        ))
+    
+    # Shaded areas for renewable specific ranges, if they exist
+    if 5 in available_percentiles and 95 in available_percentiles:
+        traces.append(go.Scatter(
+            x=years,
+            y=[ren_yearly_percentiles[year][5] for year in years],
+            fill=None,
+            mode='lines',
+            line=dict(color='gray', width=0.5),
+            showlegend=False
+        ))
+        traces.append(go.Scatter(
+            x=years,
+            y=[ren_yearly_percentiles[year][95] for year in years],
+            fill='tonexty',
+            mode='lines',
+            line=dict(color='gray', width=0.5),
+            fillcolor='rgba(128, 128, 128, 0.2)',
+            name='Renewable 5th-95th Percentile Range'
+        ))
+
+    if 25 in available_percentiles and 75 in available_percentiles:
+        traces.append(go.Scatter(
+            x=years,
+            y=[ren_yearly_percentiles[year][25] for year in years],
+            fill=None,
+            mode='lines',
+            line=dict(color='blue', width=0.5),
+            showlegend=False
+        ))
+        traces.append(go.Scatter(
+            x=years,
+            y=[ren_yearly_percentiles[year][75] for year in years],
+            fill='tonexty',
+            mode='lines',
+            line=dict(color='blue', width=0.5),
+            fillcolor='rgba(0, 0, 255, 0.2)',
+            name='Renewable 25th-75th Percentile Range'
+        ))
+
+    # Plot non-renewable percentiles
+    for p in available_percentiles:
+        traces.append(go.Scatter(
+            x=years,
+            y=[non_ren_yearly_percentiles[year][p] for year in years],
+            mode='lines',
+            name=f'Non-Renewable {p}th Percentile',
+            line=dict(dash='dash')
+        ))
+    
+    # Shaded areas for non-renewable specific ranges, if they exist
+    if 5 in available_percentiles and 95 in available_percentiles:
+        traces.append(go.Scatter(
+            x=years,
+            y=[non_ren_yearly_percentiles[year][5] for year in years],
+            fill=None,
+            mode='lines',
+            line=dict(color='orange', width=0.5, dash='dash'),
+            showlegend=False
+        ))
+        traces.append(go.Scatter(
+            x=years,
+            y=[non_ren_yearly_percentiles[year][95] for year in years],
+            fill='tonexty',
+            mode='lines',
+            line=dict(color='orange', width=0.5, dash='dash'),
+            fillcolor='rgba(255, 165, 0, 0.2)',
+            name='Non-Renewable 5th-95th Percentile Range'
+        ))
+
+    if 25 in available_percentiles and 75 in available_percentiles:
+        traces.append(go.Scatter(
+            x=years,
+            y=[non_ren_yearly_percentiles[year][25] for year in years],
+            fill=None,
+            mode='lines',
+            line=dict(color='red', width=0.5, dash='dash'),
+            showlegend=False
+        ))
+        traces.append(go.Scatter(
+            x=years,
+            y=[non_ren_yearly_percentiles[year][75] for year in years],
+            fill='tonexty',
+            mode='lines',
+            line=dict(color='red', width=0.5, dash='dash'),
+            fillcolor='rgba(255, 0, 0, 0.2)',
+            name='Non-Renewable 25th-75th Percentile Range'
+        ))
+
+    # Plot target lines
+    if ren_target is not None:
+        traces.append(go.Scatter(
+            x=[years[0], years[-1]],
+            y=[ren_target, ren_target],
+            mode='lines',
+            line=dict(color='green', dash='dash'),
+            name=ren_target_label
+        ))
+        
+        # Annotate the year when target is reached for renewables
+        for p in available_percentiles:
+            target_year = next((year for year in years if ren_yearly_percentiles[year][p] >= ren_target), None)
+            if target_year:
+                traces.append(go.Scatter(
+                    x=[target_year],
+                    y=[ren_target],
+                    mode='markers+text',
+                    text=[f'{p}th Percentile reaches renewable target'],
+                    textposition='top right',
+                    marker=dict(color='green'),
+                    showlegend=False
+                ))
+
+    if non_ren_target is not None:
+        traces.append(go.Scatter(
+            x=[years[0], years[-1]],
+            y=[non_ren_target, non_ren_target],
+            mode='lines',
+            line=dict(color='purple', dash='dash'),
+            name=non_ren_target_label
+        ))
+        
+        # Annotate the year when target is reached for non-renewables
+        for p in available_percentiles:
+            target_year = next((year for year in years if non_ren_yearly_percentiles[year][p] <= non_ren_target), None)
+            if target_year:
+                traces.append(go.Scatter(
+                    x=[target_year],
+                    y=[non_ren_target],
+                    mode='markers+text',
+                    text=[f'{p}th Percentile reaches non-renewable target'],
+                    textposition='bottom right',
+                    marker=dict(color='purple'),
+                    showlegend=False
+                ))
+
+    layout = go.Layout(
+        title=title,
+        xaxis=dict(title='Year'),
+        yaxis=dict(title=ylabel),
+        legend=dict(x=1.05, y=1, orientation='v')  # Adjust the legend position
+    )
+    
+    fig = go.Figure(data=traces, layout=layout)
+    return fig
+
+###########################################################
+
+#def plot_simulations(cumulatives, title, xaxis_title, yaxis_title, inputs):
+ #   years = list(range(inputs['start_age'] + 1, inputs['end_age'] + 1))
+#
+ #   # Plot the simulations
+  #  fig = go.Figure()
+#
+ #   for simulation in cumulatives:
+  #      fig.add_trace(go.Scatter(x=years, y=simulation, mode='lines', line=dict(width=0.5), opacity=0.3, name='Capacity'))
+#
+ #   fig.update_layout(
+  #      title=title,
+   #     xaxis_title=xaxis_title,
+    #    yaxis_title=yaxis_title,
+     #   showlegend=False
+    #)
+
+   # return fig
+
+################# MONTE CARLO  SIMULATION #################
+
+def perform_simulation(inputs: dict):
+    renewable = inputs['renewable']
+    non_renewable = inputs['non_renewable']
+    
+    years = inputs['end_age'] - inputs['start_age']
+    
+    ren_additions = get_random_ren_additions(years=years)
+    non_ren_additions = get_random_non_ren_additions(years=years)
+    
+    ren_retirements = get_random_ren_retirements(years=years)
+    non_ren_retirements = get_random_non_ren_retirements(years=years)
+    
+    ren_cumulative = []
+    non_ren_cumulative = []
+    
+    for i in range(years):        
+        # Apply capacity additions
+        renewable += ren_additions[i]
+        non_renewable += non_ren_additions[i]
+        
+        # Apply capacity retirements        
+        renewable -= ren_retirements[i]
+        non_renewable -= non_ren_retirements[i]
+        
+        ren_cumulative.append(int(renewable))
+        non_ren_cumulative.append(int(non_renewable))
+        
+        #if renewable > non_renewable: 
+    return renewable, non_renewable, ren_cumulative, non_ren_cumulative
+
+def perform_monte_carlo(inputs: dict, n: int = 1000):
+    renewable = []
+    non_renewable = []
+    ren_cumulatives = []
+    non_ren_cumulatives = []
+    
+    for i in range(n):
+        final_ren, final_non_ren, ren_cumulative, non_ren_cumulative = perform_simulation(inputs)
+        renewable.append(final_ren)
+        non_renewable.append(final_non_ren)
+        ren_cumulatives.append(ren_cumulative)
+        non_ren_cumulatives.append(non_ren_cumulative)
+        
+    renewable_lower_confidence, renewable_upper_confidence = get_confidence_levels(renewable)
+    non_renewable_lower_confidence, non_renewable_upper_confidence = get_confidence_levels(non_renewable)
+            
+    return {
+        'renewable': renewable,
+        'non_renewable': non_renewable,
+        'ren_cumulatives': ren_cumulatives,
+        'non_ren_cumulatives': non_ren_cumulatives,
+        'renewable_lower_confidence': renewable_lower_confidence,
+        'renewable_upper_confidence': renewable_upper_confidence, 
+        'non_renewable_lower_confidence': non_renewable_lower_confidence,
+        'non_renewable_upper_confidence': non_renewable_upper_confidence, 
+        'ren_yearly_percentiles': get_yearly_percentiles(ren_cumulatives, inputs),
+        'non_ren_yearly_percentiles': get_yearly_percentiles(non_ren_cumulatives, inputs)
+    }
+    
+inputs = {
+    'start_age': 2022,
+    'end_age': 2035,
+    'renewable': 332150.6,
+    'non_renewable': 724216.7,
+    'target_ren_capacity': 910000,
+    'target_non_ren_capacity': 0,
+    'n_simulations': 100,
+}
+
+########################## PLOT ##########################
+
+plot_histogram_with_confidence(mc['non_renewable'], 
+               mc['non_renewable_lower_confidence'], 
+               mc['non_renewable_upper_confidence'])
+
+
+##################### REALITY SOLUTION ####################
+
+# Capacity additions
+renewable_additions = 44661.3
+non_renewable_additions = 2624
+
+#Capacity retirements
+renewable_retirements = 12.8
+non_renewable_retirements = 4450.7
+
+#########################################################
+
+def get_random_ren_additions(mean: int, std_dev: int, years: int, min_value: int, max_value: int):
+    return np.random.normal(loc=mean, scale=std_dev, size=years)
+
+##########################################################
+
+def get_random_non_ren_additions(years: int):
+    random_additions = []
+    
+    for year in range(years):
+        addition = random.choices(
+            population = ['high', 'medium', 'low'],
+            weights = [5, 20, 75],
+            k = 1
+        )[0]
+
+        if addition == 'high':
+            addition_value = random.randint(11000, 15000) 
+        elif addition == 'medium':
+            addition_value = random.randint(6000, 10000)
+        else:
+            addition_value = random.randint(0, 5000)  
+
+        random_additions.append(addition_value)
+        
+        random_additions[0] = non_renewable_additions
+    
+    return random_additions
+    
+########################################################## 
+
+def get_random_ren_retirements(years: int):
+    random_retirements = []
+    
+    for year in range(years):
+        retirement = random.choices(
+            population = ['high', 'medium', 'low'],
+            weights = [5, 20, 70],
+            k = 1
+        )[0]
+
+        if retirement == 'high':
+            retirement_value = random.randint(200, 300) 
+        elif retirement == 'medium':
+            retirement_value = random.randint(100, 199)
+        else:
+            retirement_value = random.randint(0, 99)  
+
+        random_retirements.append(retirement_value)
+        
+        random_retirements[0] = renewable_retirements
+   
+    return random_retirements
+    
+##########################################################
+
+def get_random_non_ren_retirements(years: int):
+    random_retirements = []
+    
+    for year in range(years):
+        retirement = random.choices(
+            population = ['high', 'medium', 'low'],
+            weights = [5, 25, 70],
+            k = 1
+        )[0]
+
+        if retirement == 'high':
+            retirement_value = random.randint(11000, 15000) 
+        elif retirement == 'medium':
+            retirement_value = random.randint(6000, 10000)
+        else:
+            retirement_value = random.randint(0, 5000)  
+
+        random_retirements.append(retirement_value)
+        
+        random_retirements[0] = renewable_retirements
+   
+    return random_retirements
+
+#########################################################
+
+def get_confidence_levels(pot_sizes):    
+    upper_confidence = round(np.quantile(pot_sizes, 0.975), 2)
+    lower_confidence = round(np.quantile(pot_sizes, 0.025), 2)
+    
+    return lower_confidence, upper_confidence
+
+#########################################################
+
+def get_yearly_percentiles(cumulative, inputs) -> pd.DataFrame:
+    """
+    Finds the percentiles for each year.
+    """
+    results_rotated = list(zip(*cumulative[::-1]))
+
+    year = []
+    age = []
+    ninetieth_percentile = []
+    seventy_fifth_percentile = []
+    median = []
+    twenty_fifth_percentile = []
+    tenth_percentile = []
+    
+    for i, year_results in enumerate(results_rotated):
+        new_age = (inputs['start_age'] + 1) + i
+        ninetieth_percentile_value = np.percentile(year_results, 90)
+        seventy_fifth_percentile_value = np.percentile(year_results, 75)
+        median_value = np.median(year_results)
+        twenty_fifth_percentile_value = np.percentile(year_results, 25)
+        tenth_percentile_value = np.percentile(year_results, 10)
+        
+        year.append(i + 1)
+        age.append(new_age)
+        ninetieth_percentile.append(ninetieth_percentile_value)
+        seventy_fifth_percentile.append(seventy_fifth_percentile_value)
+        median.append(median_value)
+        twenty_fifth_percentile.append(twenty_fifth_percentile_value)
+        tenth_percentile.append(tenth_percentile_value)
+
+    return pd.DataFrame(
+        list(
+            zip(year,
+                age,
+                ninetieth_percentile, 
+                seventy_fifth_percentile,
+                median, 
+                twenty_fifth_percentile,
+                tenth_percentile)
+        ),
+        columns=[
+            'count',
+            'year',
+            '90th_percentile',
+            '75th_percentile',
+            'median', 
+            '25th_percentile',
+            '10th_percentile']
+    )
+
+#################################################################################
+
+from utils import perform_monte_carlo, plot_histogram, plot_yearly_percentiles, plot_simulations
+from helpers import reality_perform_monte_carlo
+from flask import Flask, render_template, url_for, request, jsonify, session#, redirect
+from flask_sqlalchemy import SQLAlchemy
+from flask_session import Session
+import matplotlib.image as mpimg
+import matplotlib.pyplot as plt
+import plotly.graph_objs as go
+import plotly.io as pio
+import pandas as pd
+import numpy as np
+import logging
+import redis
+
+pio.renderers.default='browser' #svg
+
+app = Flask(__name__)
+app.secret_key = '0311'
+
+# Configure session to use Redis
+app.config['SESSION_TYPE'] = 'redis'
+app.config['SESSION_PERMANENT'] = False
+app.config['SESSION_USE_SIGNER'] = True
+app.config['SESSION_REDIS'] = redis.Redis(host='localhost', port=6379)
+
+# Initialize the session
+Session(app)
+
+# Store actual data
+actual_data = {}
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    results = {}
+    form_data = session.get('form_data', {})  # Retrieve form_data from session if available
+    if request.method == 'POST':
+        form_data = request.form.to_dict()
+
+        start = int(request.form['start'])
+        end = int(request.form['end'])
+        renewable_addition = int(request.form['renewable_addition'])
+        current_renewable = int(request.form['current_renewable'])
+        current_non_renewable = int(request.form['current_non_renewable'])
+        target_renewable = int(request.form['target_renewable'])
+        target_non_renewable = int(request.form['target_non_renewable'])
+
+        inputs = {
+        'renewable_addition': renewable_addition,
+        'start_age': start,
+        'end_age': end,
+        'renewable': current_renewable,
+        'non_renewable': current_non_renewable,
+        'target_ren_capacity': target_renewable,
+        'target_non_ren_capacity': target_non_renewable,
+        'n_simulations': 2000       
+        }  
+
+        # Store inputs in session
+        session['inputs'] = inputs
+        session['form_data'] = form_data
+
+        # Run the Monte Carlo simulation
+        mc = perform_monte_carlo(inputs, n=inputs['n_simulations'])
+        results = generate_results(mc, inputs)    
+        session['results'] = results
+        #return redirect(url_for('index') + '#results-section')
+    results = session.get('results')
+    # Remove results from session if present
+    #if 'results' in session:
+        #session.pop('results')
+    return render_template('index.html', results=results, actual_data=actual_data, form_data=form_data)
+
+@app.route('/add_actual', methods=['POST'])
+def add_actual():
+    results = {}
+    #if 'inputs' not in session:
+        #return redirect(url_for('index') + '#section')
+    
+    if request.method == 'POST':        
+        year = int(request.form['year'])
+        actual_renewable_addition = request.form.get('actual_renewable_addition', type=int, default=0)
+        actual_non_renewable_addition = request.form.get('actual_non_renewable_addition', type=int, default=0)
+        actual_renewable_retirement = request.form.get('actual_renewable_retirement', type=int, default=0)
+        actual_non_renewable_retirement = request.form.get('actual_non_renewable_retirement', type=int, default=0)
+
+        logging.info(f"Year: {year}")
+        logging.info(f"Actual Renewable Addition: {actual_renewable_addition}")
+        logging.info(f"Actual Non-Renewable Addition: {actual_non_renewable_addition}")
+        logging.info(f"Actual Renewable Retirement: {actual_renewable_retirement}")
+        logging.info(f"Actual Non-Renewable Retirement: {actual_non_renewable_retirement}")
+
+        # Retrieve inputs from session
+        inputs = session.get('inputs')
+        form_data = session.get('form_data', {})
+        if not inputs:
+            # Handle the case where the inputs are not found in session
+            return "No inputs found in session. Please fill in the first form first.", 400
+
+        # Update actual data
+        actual_data[year] = {
+            'actual_renewable_addition': actual_renewable_addition,
+            'actual_non_renewable_addition': actual_non_renewable_addition,
+            'actual_renewable_retirement': actual_renewable_retirement,
+            'actual_non_renewable_retirement': actual_non_renewable_retirement,
+        }
+
+        mc = reality_perform_monte_carlo(inputs, actual_data, n=inputs['n_simulations'])
+        results = generate_results(mc, inputs) 
+        session['results'] = results
+        #return redirect(url_for('index') + '#results-section')
+    results = session.get('results') 
+    # Remove results from session if present
+    #if 'results' in session:
+        #session.pop('results')
+    return render_template('index.html', results=results, actual_data=actual_data, form_data=form_data)
+
+#@app.route('/update_actual/<int:year>')
+#def update_actual(year):
+    #return redirect(url_for('index') + '#actual')
+
+@app.route('/delete_actual/<int:year>')
+def delete_actual(year):
+    if year in actual_data:
+        del actual_data[year]
+
+    # Retrieve inputs from session
+    inputs = session.get('inputs')
+    form_data = session.get('form_data', {})
+    if inputs:
+        # Rerun the Monte Carlo simulation with updated actual_data
+        mc = reality_perform_monte_carlo(inputs, actual_data, n=inputs['n_simulations'])
+        results = generate_results(mc, inputs)
+        session['results'] = results        
+        #return redirect(url_for('index') + '#results-section')
+    results = session.get('results') 
+    # Remove results from session if present
+    if 'results' in session:
+        session.pop('results')
+    return render_template('index.html', results=results, actual_data=actual_data, form_data=form_data)
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
+def generate_results(mc, inputs):
+    # Generate the plots
+    ren_histogram = plot_histogram(mc['renewable'], mc['renewable_upper_confidence'], mc['renewable_lower_confidence'], inputs['target_ren_capacity'], title=f'Renewable Final Capacities') #after {inputs['n_simulations']}
+    non_ren_histogram = plot_histogram(mc['non_renewable'], mc['non_renewable_upper_confidence'], mc['non_renewable_lower_confidence'], inputs['target_non_ren_capacity'], title=f'Non-renewable Final Capacities') #after {inputs['n_simulations']}
+    ren_percentiles = plot_yearly_percentiles(mc['ren_yearly_percentiles'], inputs['target_ren_capacity'], 'Renewable Capacity Percentiles', renewable=True)
+    non_ren_percentiles = plot_yearly_percentiles(mc['non_ren_yearly_percentiles'], inputs['target_non_ren_capacity'], 'Non-renewable Capacity Percentiles', renewable=False)
+    #percentiles = plot_yearly_percentiles(mc['ren_yearly_percentiles'], mc['non_ren_yearly_percentiles'], 
+     #                                                           title='Renewable & Non-renewable Percentiles after 10000 simulations', 
+      #                                                          ylabel='Capacity (MW)', 
+       #                                                         ren_target=inputs['target_ren_capacity'], 
+        #                                                        ren_target_label='Renewable Target',
+         #                                                       non_ren_target=inputs['target_non_ren_capacity'], 
+          #                                                      non_ren_target_label='Non-Renewable Target')
+    ren_simulations = plot_simulations(mc['ren_cumulatives'], "Renewable Capacity Simulations", "Year", "Capacity (MW)", inputs, increasing=True) 
+    non_ren_simulations = plot_simulations(mc['non_ren_cumulatives'], "Non-Renewable Capacity Simulations", "Year", "Capacity (MW)", inputs, increasing=False)
+
+    # Convert the plots to HTML
+    ren_histogram_html = pio.to_html(ren_histogram, full_html=False, include_plotlyjs='cdn') 
+    non_ren_histogram_html = pio.to_html(non_ren_histogram, full_html=False, include_plotlyjs='cdn')
+    ren_percentiles_html = pio.to_html(ren_percentiles, full_html=False, include_plotlyjs='cdn')
+    non_ren_percentiles_html = pio.to_html(non_ren_percentiles, full_html=False, include_plotlyjs='cdn')
+    #percentiles_html = pio.to_html(percentiles, full_html=False)
+    ren_simulations_html = pio.to_html(ren_simulations, full_html=False, include_plotlyjs='cdn')
+    non_ren_simulations_html = pio.to_html(non_ren_simulations, full_html=False, include_plotlyjs='cdn')
+
+    # Pass the plot HTML to the template
+    return {
+        'ren_histogram': ren_histogram_html,
+        'non_ren_histogram': non_ren_histogram_html,
+        'ren_percentiles': ren_percentiles_html,
+        'non_ren_percentiles': non_ren_percentiles_html,
+        #'percentiles': percentiles_html,
+        'ren_simulations': ren_simulations_html,
+        'non_ren_simulations': non_ren_simulations_html,
+    } 
+
+if __name__ == "__main__":
+    app.run(debug=True)

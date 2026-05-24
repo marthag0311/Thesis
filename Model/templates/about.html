@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+             /* A color that complements f0ffff */
+        }
+        .header, .footer {
+            background-color: #f0ffff;
+            padding: 20px 0;
+        }
+        .header .container, .footer .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header .logo img, .footer .logo img {
+            width: 150px; /* Adjust the width as needed */
+            height: auto;
+        }
+        .header nav ul {
+            list-style: none;
+            display: flex;
+            gap: 20px;
+        }
+        .header nav a {
+            color: black;
+            text-decoration: none;
+            font-size: 1.1em;
+        }
+        .about-header {
+            background-color: #f0ffff;
+            color: black;
+            padding: 50px 0;
+            text-align: center;
+        }
+        .content-section {
+            padding: 40px 20px;
+        }
+        .content-section h2 {
+            margin-bottom: 20px;
+        }
+        .content-section p, .content-section ul {
+            font-size: 1.1em;
+            line-height: 1.6em;
+        }
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        .footer-section {
+            text-align: left;
+        }
+        .footer-section ul {
+            list-style: none;
+            padding: 0;
+        }
+        .footer-section ul li {
+            margin-bottom: 10px;
+        }
+        .footer-section ul li a {
+            color: black;
+            text-decoration: none;
+        }
+        .footer-section h4 {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        .footer .contact-info li {
+            margin-bottom: 10px;
+        }
+        .btn-primary {
+            background-color: #FF6600;
+            border: none;
+            display: block;
+            width: 200px;
+            margin: 0 auto; /* Center align the button */
+        }
+        .btn-primary:hover {
+            color: #FF4500;
+            background-color: #f0ffff; /*45a049*/
+        }
+        .content-section.bg-light {
+            background-color: #E0F7FA;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="logo"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Clean Electricity"></div>
+            <nav>
+                <ul> 
+                    <li><a href="{{ url_for('index') }}">Home</a></li>
+                    <li><a href="{{ url_for('about') }}">About</a></li>
+                    <li><a href="#footer">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <div class="about-header">
+        <div class="container">
+            <h1>SOLARWINDS</h1>
+            <p>Your go-to platform for simulating and predicting renewable and non-renewable energy capacities.</p>
+        </div>
+    </div>
+    <section class="content-section">
+        <div class="container">
+            <h2>The Mission</h2>
+            <p>
+               The mission is for countries to use the platform to explore renewable energy capacity deployment strategies. 
+            </p>
+        </div>
+    </section>
+    <section class="content-section bg-light">
+        <div class="container">
+            <h2>Vision</h2>
+            <p>
+                The visions is for stakeholders to find the platform credible.
+            </p>
+            <h2>Values</h2>
+            <ul>
+                <li>Facilitate decision-making.</li>
+                <li>Exploration of strategies</li>
+            </ul>
+        </div>
+    </section>
+    <section class="content-section">
+        <div class="container">
+            <h2>Benefits of Using Our Platform</h2>
+            <p>
+                By utilizing our platform, the following are the benefits you gain:
+            </p>
+            <ul>
+                <li><strong>Enhanced decision-making:</strong> The model facilitates informed decision-making by allowing stakeholders to explore various strategies for renewable energy expansion. By simulating different strategies, stakeholders can identify the most effective approaches for achieving renewable energy capacity target and minimizing reliance on non-renewable sources. In addition, the platform’s ability to visualize complex data through histograms and line plots enhances user’s comprehension. The line plots and histograms have annotations that annotates when the pathways reach the targets, thus improving the overall decision-making process.</li>
+                <li><strong>Informed strategy development:</strong> The platform provides a probabilistic view of potential outcomes, offering insights into the variability and uncertainty of energy capacity transitions. This allows stakeholders to understand the range of possible future pathways and develop strategies that are robust under various conditions.</li>
+            </ul>
+        </div>
+    </section>
+    <section class="content-section bg-light">
+        <div class="container">
+            <h2>Get Started Today</h2>
+            <p>
+                Whether you are an energy planner, policymaker, 
+                or a scholar, the platform helps energy planners 
+                by aiding in strategic planning and investment 
+                decisions as energy planners utilize the platform
+                for potential growth pathways of renewable energy
+                capacity. The platform helps policymakers to inform 
+                policy and regulation decisions, considering the impact
+                on renewable energy adoption, as policymakers may
+                leverage the insights provided by the simulations. 
+                The platform also helps scholars for academic and 
+                research purposes through exploring various strategies
+                and analysing the effectiveness of different strategies
+                in promoting renewable energy deployment.
+            </p>
+            <a href="/" class="btn btn-primary">Go to Homepage</a>
+        </div>
+    </section>
+    <footer class="footer" id="footer">
+        <div class="container">
+            <div class="logo"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Clean Electricity"></div>
+            <div class="footer-section">
+                <h4><strong>About</strong></h4>
+                <ul>
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4><strong>Related Sites</strong></h4>
+                <ul>
+                    <li><a href="#">Petroleum</a></li>
+                    <li><a href="#">EIA</a></li>
+                    <li><a href="#">Nuclear</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4><strong>Contact</strong></h4>
+                <ul class="contact-info">
+                    <li><i class="fas fa-phone"></i> 015369100</li>
+                    <li><i class="fas fa-envelope"></i> international.support@thomasmore.be</li>
+                    <li><i class="fas fa-map-marker-alt"></i> Thomas More Mechelen - Campus De Vest<br>Zandpoortvest 60<br>2800, Mechelen</li>
+                </ul>
+            </div>
+        </div>
+        <p>&copy; 2024 Monte Carlo Simulation Website. All rights reserved.</p>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
